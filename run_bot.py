@@ -57,4 +57,4 @@ if __name__ == '__main__':
     TOKEN = config["token"]
 
     LOGGER.info("Server running on port: " + str(port))
-    app.run(port=port)
+    app.run(host="0.0.0.0", port=port)
