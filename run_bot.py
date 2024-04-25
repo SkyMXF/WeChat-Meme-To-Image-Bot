@@ -31,6 +31,7 @@ def meme_bot():
     else:
         # handle message
         msg = parse_message(request.data)
+        LOGGER.debug(request.data)
         if msg.type == 'text':
             reply = create_reply('echo: ' + msg.content, msg)
             return reply.render()
