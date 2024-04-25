@@ -1,1 +1,2 @@
 wechatpy
+pycrypto>=2.6.1
