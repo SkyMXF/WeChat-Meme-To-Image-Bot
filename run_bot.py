@@ -3,12 +3,36 @@ import xml.etree.ElementTree
 import http.server
 import socketserver
 import logging
+from wechatpy.utils import check_signature
+from wechatpy.exceptions import InvalidSignatureException
+from wechatpy import parse_message, create_reply
 
 
 LOGGER = logging.getLogger("MainLogger")
 
+TOKEN = ""
+
 
 class WeChatUserMsgRequestHandler(http.server.SimpleHTTPRequestHandler):
+
+    def do_GET(self):
+        # get args
+        args = self.path.split("?")[1]
+        args = args.split("&")
+        args_dict = {}
+        for arg in args:
+            key, value = arg.split("=")
+            args_dict[key] = value
+
+        try:
+            check_signature(TOKEN, args_dict["signature"], args_dict["timestamp"], args_dict["nonce"])
+        except InvalidSignatureException:
+            LOGGER.error("Invalid signature for verification.")
+            return
+
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(args_dict["echostr"].encode())
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
@@ -49,6 +73,7 @@ if __name__ == '__main__':
         config = json.load(f)
 
     port = config["local_port"]
+    TOKEN = config["token"]
 
     with socketserver.TCPServer(("", port), WeChatUserMsgRequestHandler) as httpd:
         LOGGER.info("Server running on port: " + str(port))
